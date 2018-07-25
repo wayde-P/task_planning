@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %} 用户列表 {% endblock %}
+
+{% block content %}
+    <div id="pad-wrapper" class="users-list">
+        <div class="row-fluid header">
+            <form>
+                <div class="table-wrapper orders-table">
+                    <div class="row-fluid header">
+                        <div class="span12">
+                            <h3>用户列表</h3>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="span2">
+                                    </th>
+{#                                    <th class="span3">#}
+{#                                        任务名#}
+{#                                    </th>#}
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        用户名
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        是否禁用
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        超级管理
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        邮件地址
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        手机号码
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        创建时间
+                                    </th>
+{#                                    <th class="span3">#}
+{#                                        <span class="line"></span>#}
+{#                                        备注#}
+{#                                    </th>#}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- row -->
+                                {% for user_info in all_user %}
+                                    <tr>
+                                        <td><button class="btn btn-primary" onclick="window.open('http://127.0.0.1:8000/user_profile.html?user_id={{ user_info.id }}');">详情</button></td>
+{#                                        <td>{{ user_info.task_name }}</td>#}
+                                        <td>{{ user_info.user }}</td>
+                                        <td>{{ user_info.is_active }}</td>
+                                        <td>{{ user_info.is_super }}</td>
+                                        <td>{{ user_info.email }}</td>
+                                        <td>{{ user_info.phone }}</td>
+                                        <td>{{ user_info.update_time|date:"Y-m-d H:i:s" }}</td>
+{#                                        <td>{{ user_info.comment }}</td>#}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

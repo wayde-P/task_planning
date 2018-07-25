@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %} home {% endblock %}
+
+{% block sidebar %}
+    <li class="active">
+        <div class="pointer">
+            <div class="arrow"></div>
+            <div class="arrow_border"></div>
+        </div>
+        <a href="index.html">
+            <i class="icon-home"></i>
+            <span>Home</span>
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-toggle" href="#">
+            <i class="icon-group"></i>
+            <span>DB STATUS</span>
+            <i class="icon-chevron-down"></i>
+        </a>
+        <ul class="submenu">
+            <li><a href="task_list_bbak.html">DB lock</a></li>
+        </ul>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <div id="pad-wrapper" class="users-list">
+        <div class="row-fluid header">
+            <h1>permission deny to this page !</h1>
+        </div>
+    </div>
+
+{% endblock %}

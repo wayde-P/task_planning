@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %} 任务列表 {% endblock %}
+
+{% block content %}
+    <div id="pad-wrapper" class="users-list">
+        <div class="row-fluid header">
+            <form>
+                <div class="table-wrapper orders-table">
+                    <div class="row-fluid header">
+                        <div class="span12">
+                            <h3>任务列表</h3>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="span2">
+                                    </th>
+{#                                    <th class="span3">#}
+{#                                        任务名#}
+{#                                    </th>#}
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        主机
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        执行用户
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        任务类型
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        频率
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        命令
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        创建时间
+                                    </th>
+                                    <th class="span3">
+                                        <span class="line"></span>
+                                        备注
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- row -->
+                                {% for task_info in task_list_dict %}
+                                    <tr>
+                                        <td><button class="btn btn-primary" onclick="window.open('http://127.0.0.1:8000/task_history.html?task_id={{ task_info.id }}');">详情</button></td>
+{#                                        <td>{{ task_info.task_name }}</td>#}
+                                        <td>{{ task_info.host }}</td>
+                                        <td>{{ task_info.exec_user }}</td>
+                                        <td>{{ task_info.task_type }}</td>
+                                        <td>{{ task_info.frequency }}</td>
+                                        <td>{{ task_info.script_path }}</td>
+                                        <td>{{ task_info.task_create_time|date:"Y-m-d H:i:s" }}</td>
+                                        <td>{{ task_info.comment }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

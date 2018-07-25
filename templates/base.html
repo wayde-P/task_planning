@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{% block title %}首页{% endblock %}</title>
+    
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	{% block css %}{% endblock %}
+    <!-- bootstrap -->
+    <link href="static/css/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="static/css/bootstrap/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="static/css/bootstrap/bootstrap-overrides.css" type="text/css" rel="stylesheet" />
+
+    <!-- libraries -->
+    <link href="static/css/lib/jquery-ui-1.10.2.custom.css" rel="stylesheet" type="text/css" />
+    <link href="static/css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+
+    <!-- global styles -->
+    <link rel="stylesheet" type="text/css" href="static/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="static/css/elements.css" />
+    <link rel="stylesheet" type="text/css" href="static/css/icons.css" />
+
+    <!-- this page specific styles -->
+    <link rel="stylesheet" href="static/css/compiled/index.css" type="text/css" media="screen" />    
+
+    <!-- open sans font -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css' />
+
+    <!-- lato font -->
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css' />
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+<body>
+
+    <!-- navbar -->
+    <div class="navbar navbar-inverse">
+        <div class="navbar-inner">
+            <button type="button" class="btn btn-navbar visible-phone" id="menu-toggler">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+            <a class="brand" href="index.html"><img src="static/img/logo.png" /></a>
+
+            <ul class="nav pull-right">                
+                <li class="hidden-phone">
+                    <input class="search" type="text" />
+                </li>
+                <li class="settings hidden-phone">
+                    <a href="logout.html" role="button">
+                        <i class="icon-share-alt"></i>
+                    </a>
+                </li>
+            </ul>            
+        </div>
+    </div>
+    <!-- end navbar -->
+
+    <!-- sidebar -->
+    <div id="sidebar-nav">
+        <ul id="dashboard-menu">
+{#            {% block sidebar %} {% endblock %}#}
+            {% for item in permission_list %}
+                {% if item.active == True %}
+                    <li class="active">
+                        <div class="pointer">
+                            <div class="arrow"></div>
+                            <div class="arrow_border"></div>
+                        </div>
+                {% else %}
+                    <li>
+                {% endif %}
+                    <a href={{ item.link }}>
+                    <i class="{{ item.icon_name }}"></i>
+                        <span>{{ item.title }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+
+        </ul>
+    </div>
+    <!-- end sidebar -->
+
+
+	<!-- main container -->
+    <div class="content">
+        <div class="container-fluid">
+        {% block content %} {% endblock %}
+        </div>
+    </div>
+
+
+	<!-- scripts -->
+
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/jquery-ui-1.10.2.custom.min.js"></script>
+    <!-- knob -->
+    <script src="static/js/jquery.knob.js"></script>
+    <!-- flot charts -->
+    <script src="static/js/jquery.flot.js"></script>
+    <script src="static/js/jquery.flot.stack.js"></script>
+    <script src="static/js/jquery.flot.resize.js"></script>
+    <script src="static/js/theme.js"></script>
+    {% block script %} {% endblock %}
+
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %} 用户权限详情 {% endblock %}
+
+{% block content %}
+    <div id="pad-wrapper" class="user-profile">
+        <!-- header -->
+        <div class="row-fluid header">
+            <div class="span8">
+{#                <img src="img/contact-profile.png" display="none" class="avatar img-circle">#}
+                <h3 class="name">{{ username }}</h3>
+{#                <span class="area">Graphic Designer</span>#}
+            </div>
+            <a class="btn-flat icon pull-right delete-user" data-toggle="tooltip" title="" data-placement="top" data-original-title="Delete user">
+                <i class="icon-trash"></i>
+            </a>
+             <a class="btn-flat icon large pull-right edit">
+                Edit this person
+            </a>
+        </div>
+
+        <div class="row-fluid profile">
+            <!-- bio, new note & orders column -->
+            <div class="span9 bio">
+                <div class="profile-box">
+                    <!-- biography -->
+{#                    <div class="span12 section">#}
+{#                        <h6>Biography</h6>#}
+{#                        <p>There are many variations of passages of Lorem Ipsum available but the majority have humour suffered alteration in believable some formhumour , by injected humour, or randomised words which don't look even slightly believable. </p>#}
+{#                    </div>#}
+
+                    <h3>权限明细</h3>
+                    <br>
+                    <!-- recent orders table -->
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="span2">
+                                    用户
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    权限名称
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    连接
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    权限简介
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    删除
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- row -->
+                            {% for permission_info in user_permission_list %}
+                                <tr>
+                                    <td>{{ permission_info.user }}</td>
+                                    <td>{{ permission_info.title }}</td>
+                                    <td>{{ permission_info.link }}</td>
+                                    <td>{{ permission_info.info }}</td>
+                                    <td><a class="btn btn-danger" href="http://127.0.0.1:8000/permission_manager.html?action=del&user_id={{ user_id }}&permission_id={{ permission_info.id }}">移除</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <h3>可开通权限明细</h3>
+                    <br>
+                    <table class="table table-hover" id="select_permission" >
+                        <thead>
+                            <tr>
+                                <th class="span2" id="payxf">
+                                    <input type="checkbox" class="zdcheckbox">
+                                    <span class="line"></span>选择
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    权限名称
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    连接
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    权限简介
+                                </th>
+                                <th class="span2">
+                                    <span class="line"></span>
+                                    添加
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- row -->
+                            {% for permission_info in no_permission_list %}
+                            <tr>
+                                <td id="payxf">
+                                    <label class="checkbox">
+                                        <div class="checker">
+                                            <span class=""><input type="checkbox" id="{{ permission_info.id }}"></span>
+                                        </div>
+                                    </label>
+                                </td>
+                                <td>{{ permission_info.title }}</td>
+                                <td>{{ permission_info.link }}</td>
+                                <td>{{ permission_info.info }}</td>
+                                <td><a class="btn btn-primary" href="http://127.0.0.1:8000/permission_manager.html?action=add&user_id={{ user_id }}&permission_id={{ permission_info.id }}">添加</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- new comment form -->
+                    <div class="span12 section comment">
+                        <h6>Add a quick note</h6>
+                        <p>Add a note about this user to keep a history of your interactions.</p>
+                        <textarea></textarea>
+                        <a href="#">Attach files</a>
+                        <div class="span12 submit-box pull-right">
+                            <input type="submit" class="btn-glow primary" value="Add Note">
+                            <span>OR</span>
+                            <input type="reset" value="Cancel" class="reset">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- side address column -->
+            <div class="span3 address pull-right">
+                <h6>Address</h6>
+{#                <iframe width="300" height="133" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com.mx/?ie=UTF8&amp;t=m&amp;ll=19.715081,-155.071421&amp;spn=0.010746,0.025749&amp;z=14&amp;output=embed"></iframe>#}
+                <ul>
+                    <li>2301 East Lamar Blvd. Suite 140. </li>
+                    <li>City, Arlington. United States,</li>
+                    <li>Zip Code, TX 76006.</li>
+                    <li class="ico-li">
+                        <i class="ico-phone"></i>
+                        1817 274 2933
+                    </li>
+                     <li class="ico-li">
+                        <i class="ico-mail"></i>
+                        <a href="#">alejandra@detailcanvas.com</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+         $("#payxf").bind("click",function () {
+         if ($(this).hasClass("checkth")) {
+             $("#select_permission tr").each(function(){
+                        $(this).find('td').eq(0).find(':checkbox').attr('checked',false);
+                        $(this).find('th').eq(0).find(':checkbox').attr('checked',false);
+                        $(this).find('td').eq(0).removeClass("checkth");
+                        $(this).find('th').eq(0).removeClass("checkth");
+                    })
+         } else {
+               $("#select_permission tr").each(function(){
+                    $(this).find('td').eq(0).find(':checkbox').attr('checked',true);
+                    $(this).find('th').eq(0).find(':checkbox').attr('checked',true);
+                    $(this).find('td').eq(0).addClass('checkth');
+                    $(this).find('th').eq(0).addClass('checkth');
+                })
+         }
+       });
+
+        $("#select_permission").click(function () {
+            $.each($('input :checkbox'), function () {
+                if (this.checked) {
+                    window.alert("你选了：" +
+                            $('input[type=checkbox]:checked').length + "个，其中有：" + $(this).val());
+                }
+            });
+        });
+    </script>
+{% endblock %}

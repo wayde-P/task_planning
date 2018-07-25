@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %} Add task {% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="static/css/compiled/form-showcase.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="static/css/compiled/new-user.css" type="text/css" media="screen">
+{% endblock %}
+
+
+{% block content %}
+    <div id="pad-wrapper" class="new-user">
+        <div class="row-fluid header">
+            <h3>添加完成.</h3>
+
+        </div>
+        <div class="btn-group-lg btn-group-justified" role="group" >
+            <div class="btn-group">
+                <a class="btn btn-primary" role="group" href="task_list_bbak.html">返回列表页</a>
+            </div>
+            <div class="btn-group">
+                <a class="btn btn-primary" role="group" href="add_task.html">继续添加任务</a>
+            </div>
+
+
+        </div>
+
+    </div>
+
+{% endblock %}
