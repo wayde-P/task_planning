@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %} Histrory {% endblock %}
+
+{% block css %}
+    <link href="static/css/bootstrap/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+{% endblock %}
+{% block sidebar %}
+    <li class="active">
+        <div class="pointer">
+            <div class="arrow"></div>
+            <div class="arrow_border"></div>
+        </div>
+        <a href="index.html">
+            <i class="icon-home"></i>
+            <span>Home</span>
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-toggle" href="#">
+            <i class="icon-group"></i>
+            <span>Task_list</span>
+            <i class="icon-chevron-down"></i>
+        </a>
+        <ul class="submenu">
+            <li><a href="task_list_bbak.html">DB lock</a></li>
+        </ul>
+    </li>
+{% endblock %}
+
+{% block content %}
+    <form action="http://127.0.0.1:8000/task_history.html?task_id={{ task_id }}" method="post" class="form-horizontal">
+        <fieldset>
+            <legend>Task History</legend>
+{#            <div class="row-fluid title">#}
+{#                <h5><span>{{ task_info }}</span></h5>#}
+{#            </div>#}
+            <div class="alert alert-info">
+                <i class="icon-lightbulb"></i>
+                {{ task_info }}
+            </div>
+            <div class="row-fluid">
+                <div class="span1 text-right">
+                    <label>选择时间</label>
+                </div>
+                <div class="input-append date form_datetime span3" data-date="2013-02-21T15:25:00Z">
+                    <input type="text" id='starttime' name="web_starttime" value="{{ starttime }}" readonly>
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-calendar"></i></span>
+                </div>
+                <div class="input-append date form_datetime span3" data-date="2013-02-21T15:25:00Z">
+                    <input id="endtime" name="web_endtime" type="text" value="{{ endtime }}" readonly>
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-calendar"></i></span>
+                </div>
+                <div class="btn-group span1">
+                    <button type="submit" class="btn">确定</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    <div class="row-fluid">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="span2">开始时间</th>
+                    <th class="span2">
+                        <span class="line"></span>
+                        结束时间
+                    </th>
+                    <th class="span2">
+                        <span class="line"></span>
+                        执行用户
+                    </th>
+                    <th class="span2">
+                        <span class="line"></span>
+                        执行结果
+                    </th>
+                    <th class="span2">
+                        <span class="line"></span>
+                        执行影响行数
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- row -->
+                {% for hist_info in hist_result %}
+                    <tr>
+                        <td>{{ hist_info.start_time|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ hist_info.end_time|date:"Y-m-d H:i:s"}}</td>
+                        <td>{{ hist_info.exec_user }}</td>
+                        {% if hist_info.result == 0 %}
+                            <td>成功</td>
+                        {% else %}
+                            <td>失败</td>
+                        {% endif %}
+                        <td>{{ hist_info.lines }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="static/js/jquery-1.8.3.min.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="static/js/bootstrap-datetimepicker.min.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="static/js/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+    <script type="text/javascript">
+    $('.form_datetime').datetimepicker({
+        language:  'zh-CN',
+        weekStart: 0,
+        todayBtn:  true,
+		autoclose: 1,
+		todayHighlight: 1,
+		startView: 2,
+		forceParse: 0,
+{#        showMeridian: 1,#}
+    });
+{#    $('.form_datetime').datetimepicker('setStartDate', '2018-03-01');#}
+{#    $('.form_datetime').datetimepicker('setEndDate', '2018-05-01');#}
+    </script>
+ {% endblock %}
