@@ -23,14 +23,16 @@ def genearteMD5(str):
     return hl.hexdigest()
 
 
-mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
+# mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
 
 def log(username,request_path,reslute,comment):
     log_sql="insert into task_plant_log (op_time,username,url_path,result,comment) values (now(),%s,%s,%s,%s)"
+    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
     if mh.cud(log_sql,(username,request_path,int(reslute),comment)):
         pass
     else:
         print("log error")
+    mh.close()
 
 def get_permission_list(username, request_path):
     # is_login = request.session.get("login", False)
@@ -41,7 +43,9 @@ def get_permission_list(username, request_path):
           'and u.id = m.user_id ' \
           'and p.id = m.permission_id ' \
           'and p.active = 1;'
+    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
     user_permission_list = mh.find(sql, username)
+    mh.close()
     # print(user_permission_list)
     handle_permission_list = []
     for item in user_permission_list:
@@ -62,7 +66,9 @@ def check_permission(username, request_path):
           'where u.user = %s ' \
           'and u.id = m.user_id ' \
           'and p.id = m.permission_id'
+    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
     permission_dict = mh.find(sql, username)
+    mh.close()
     # print(permission_list)
     permission_list = []
     for permission in permission_dict:
@@ -150,7 +156,10 @@ def task_list(request):
             permission_list = get_permission_list(username, request_path)
             # 获取任务列表
             sql = "select * from task_list where 1 = %s"
+            mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning',
+                                        'utf8')
             task_list_dict = mh.find(sql, 1)
+            mh.close()
             log(username, request.path, 0, "get task list")
             # print(task_list_dict)
             return render(request, "task_list.html",
@@ -197,6 +206,8 @@ def report_data(request):
         add_history_sql = "insert into task_history(host,report_md5,result,`lines`,start_time,end_time," \
                           "exec_user,`min`,`hour`,`day`,`month`,week,command) " \
                           "values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning',
+                                    'utf8')
         if mh.cud(add_history_sql, (exc_host,
                                     report_command_md5,
                                     int(report_result),
@@ -210,8 +221,10 @@ def report_data(request):
                                     month,
                                     week,
                                     handle_command)):
+            mh.close()
             return HttpResponse(content="ok")
         else:
+            mh.close()
             return HttpResponse(content="report error , please check parameters")
 
 
@@ -234,12 +247,14 @@ def task_history(request):
             print("time is : ", start_time, end_time)
 
             # 根据id获取历史数据
-            task_id = request.GET["task_id"]
+            task_id = request.GET.get("task_id")
             if task_id:
                 task_history_sql = "select h.command,h.start_time,h.end_time,h.exec_user,h.result,h.lines from task_history h,task_list l " \
                                    "where l.id = %s and l.script_path_md5 = h.report_md5 and start_time >= %s and start_time < %s ;"
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
                 task_history_result = mh.find(task_history_sql, (task_id, start_time, end_time))
-
+                mh.close()
                 # print("task_history_result: ",task_history_result)
                 task_info = task_history_result[0].get("command")
                 result_dict = {"starttime": start_time, "endtime": end_time, "hist_result": task_history_result,
@@ -267,7 +282,7 @@ def add_task(request):
             if request.method == "GET":
                 return render(request, "add_task.html", {"permission_list": permission_list})
             elif request.method == "POST":
-                task_name = request.POST['task_name']
+                task_name = request.POST.get('task_name')
                 task_type = request.POST['task_type']
                 task_host = request.POST['host']
                 exec_user = request.POST['exec_user']
