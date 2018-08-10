@@ -132,17 +132,7 @@ def login(request):
 
 
 def index(request):
-    is_login = request.session.get("login", False)
-    username = request.session.get("username")
-    request_path = request.path
-    print("request_path: ", request_path)
-    if is_login:
-        if check_permission(username, request_path):
-            return render(request, "index.html")
-        else:
-            return render(request, "no_permission.html")
-    else:
-        return redirect("login.html")
+    return redirect("login.html")
 
 
 def task_list(request):
@@ -297,12 +287,16 @@ def add_task(request):
 
                 add_task_sql = "insert into task_list(task_name,host,exec_user,task_type,frequency,script_path_md5,script_path,task_create_time,comment) " \
                                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
                 if mh.cud(add_task_sql, (
                         task_name, task_host, exec_user, task_type, frequency, task_md5, script_path, create_time,
                         task_comment)):
+                    mh.close()
                     return render(request, "add_task_return.html")
                     # return HttpResponse(content="<html><body>add task ok,<a herf=\"/task_list.html\">任务列表</a></body></html>")
                 else:
+                    mh.close()
                     return HttpResponse(content="report error , please check parameters")
         else:
             return render(request, "no_permission.html")
@@ -325,17 +319,27 @@ def manage_task_list(request):
                     # print("=========================================", delete_id)
                     if delete_id:
                         get_task_command_sql="select script_path from task_list where id = %s ; "
+                        mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                    'task_planning', 'utf8')
                         command_info=mh.find(get_task_command_sql,delete_id)[0].get("script_path")
                         print("command_info: ",command_info)
+                        mh.close()
                         del_task_sql = "delete from task_list where id = %s"
+                        mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                    'task_planning', 'utf8')
                         if mh.cud(del_task_sql, delete_id):
+                            mh.close()
                             log(username, request.path, 0, "delete task: {}".format(command_info))
                             return redirect("manage_task_list.html")
                         else:
+                            mh.close()
                             return HttpResponse("delete task fail")
                 except:
                     sql = "select * from task_list where 1 = %s"
+                    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                'task_planning', 'utf8')
                     task_list_dict = mh.find(sql, 1)
+                    mh.close()
                     # print("manage task list:",task_list_dict)
                     log(username, request.path, 0, "get task list")
                     return render(request, "manage_task_list.html",
@@ -356,7 +360,10 @@ def user_list(request):
             permission_list = get_permission_list(username, request_path)
             if request.method == "GET":
                 sql = "select * from user where 1 = %s"
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
                 all_user = mh.find(sql, 1)
+                mh.close()
                 log(username, request.path, 0, "get user list")
                 return_dict = {"all_user": all_user, "permission_list": permission_list}
                 return render(request, "user_list.html", return_dict)
@@ -384,14 +391,20 @@ def user_profile(request):
                     get_user_permission_sql = "select U2P.id,U.user,P.title,P.link,P.info " \
                                               "from user U,permission P,my_user_to_permission U2P " \
                                               "where U2P.user_id = U.id and U2P.permission_id = P.id and U.id = %s;"
+                    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                'task_planning', 'utf8')
                     user_permission_list = mh.find(get_user_permission_sql, user_id)
+                    mh.close()
                     # username=user_permission_list[0].get("user")
                     # print("userperimisiionlist: ",user_permission_list)
                     # print("username: ", username)
+                    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                'task_planning', 'utf8')
                     get_no_permission_sql = "select id,title,link,info,active,icon_name " \
                                             "from permission where id not in " \
                                             "(select  permission_id from my_user_to_permission where user_id = %s) "
                     no_permission_list = mh.find(get_no_permission_sql, user_id)
+                    mh.close()
                     log(username, request.path, 0, "into manager permission page")
                     return_dict = {"no_permission_list": no_permission_list, "username": username, "user_id": user_id,
                                    "user_permission_list": user_permission_list, "permission_list": permission_list}
@@ -428,14 +441,18 @@ def permission_manager(request):
                     info="add user_id is {}, permission_id is {}".format(user_id, permission_id)
                 else:
                     return redirect("user_list.html")
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
 
                 if mh.cud(permission_sql, (user_id, permission_id)):
                     redirect_url = "/user_profile.html?user_id={}".format(user_id)
                     log(username, request.path, 0,info)
                     # return redirect("/user_profile.html?user_id=%s",user_id)
                     # print(redirect_url)
+                    mh.close()
                     return redirect(redirect_url)
                 else:
+                    mh.close()
                     return HttpResponse(content="db error")
 
             elif request.method == "POST":

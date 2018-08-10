@@ -19,6 +19,7 @@ from task_manager import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls,name='admin'),
+    url(r'^/', views.index, name='admin'),
     # url('base', views.base),
     url('login.html', views.login,name='login.html'),
     url('logout.html', views.logout,name='logout.html'),
