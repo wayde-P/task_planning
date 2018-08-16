@@ -82,7 +82,11 @@ def check_permission(username, request_path):
 
 def login(request):
     if request.method == "GET":
-        return render(request, "signin.html")
+        is_login = request.session.get("login", False)
+        if is_login:
+            return redirect("task_list.html")
+        else:
+            return render(request, "signin.html")
         # return HttpResponse(request,"login.html")
     elif request.method == "POST":
         # print(request.POST)
