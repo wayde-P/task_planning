@@ -64,7 +64,9 @@
                                     <td>{{ permission_info.title }}</td>
                                     <td>{{ permission_info.link }}</td>
                                     <td>{{ permission_info.info }}</td>
-                                    <td><a class="btn btn-danger" href="http://127.0.0.1:8000/permission_manager.html?action=del&user_id={{ user_id }}&permission_id={{ permission_info.id }}">移除</a></td>
+                                    <td><a class="btn btn-danger"
+                                           href="{{ global_url }}permission_manager.html?action=del&user_id={{ user_id }}&permission_id={{ permission_info.id }}">移除</a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -110,7 +112,9 @@
                                 <td>{{ permission_info.title }}</td>
                                 <td>{{ permission_info.link }}</td>
                                 <td>{{ permission_info.info }}</td>
-                                <td><a class="btn btn-primary" href="http://127.0.0.1:8000/permission_manager.html?action=add&user_id={{ user_id }}&permission_id={{ permission_info.id }}">添加</a></td>
+                                <td><a class="btn btn-primary"
+                                       href="{{ global_url }}permission_manager.html?action=add&user_id={{ user_id }}&permission_id={{ permission_info.id }}">添加</a>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

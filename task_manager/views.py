@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from task_manager import mysql_conn
+from task_manager import conf
 import requests
 import json
 import time
@@ -10,6 +11,8 @@ import hashlib
 
 
 # Create your views here.
+
+global_url = conf.global_url
 
 def genearteMD5(str):
     # 创建md5对象
@@ -157,7 +160,8 @@ def task_list(request):
             log(username, request.path, 0, "get task list")
             # print(task_list_dict)
             return render(request, "task_list.html",
-                          {"task_list_dict": task_list_dict, "permission_list": permission_list})
+                          {"task_list_dict": task_list_dict, "permission_list": permission_list,
+                           "global_url": global_url})
         else:
             log(username, request.path, 1, "get task list fail , no permission")
             return render(request, "no_permission.html")
@@ -252,7 +256,8 @@ def task_history(request):
                 # print("task_history_result: ",task_history_result)
                 task_info = task_history_result[0].get("command")
                 result_dict = {"starttime": start_time, "endtime": end_time, "hist_result": task_history_result,
-                               "task_id": task_id, "permission_list": permission_list, "task_info":task_info}
+                               "task_id": task_id, "permission_list": permission_list, "task_info": task_info,
+                               "global_url": global_url}
                 #
                 info="task is {}, start time is : {} , endtime is : {}".format(task_info,start_time,end_time)
                 log(username, request.path, 0, info)
@@ -369,7 +374,7 @@ def user_list(request):
                 all_user = mh.find(sql, 1)
                 mh.close()
                 log(username, request.path, 0, "get user list")
-                return_dict = {"all_user": all_user, "permission_list": permission_list}
+                return_dict = {"all_user": all_user, "permission_list": permission_list, "global_url": global_url}
                 return render(request, "user_list.html", return_dict)
         else:
             return render(request, "no_permission.html")
@@ -411,7 +416,8 @@ def user_profile(request):
                     mh.close()
                     log(username, request.path, 0, "into manager permission page")
                     return_dict = {"no_permission_list": no_permission_list, "username": username, "user_id": user_id,
-                                   "user_permission_list": user_permission_list, "permission_list": permission_list}
+                                   "user_permission_list": user_permission_list, "permission_list": permission_list,
+                                   "global_url": global_url}
                     return render(request, "user_profile.html", return_dict)
             elif request.method == "POST":
                 pass

@@ -55,7 +55,12 @@
                                 <!-- row -->
                                 {% for user_info in all_user %}
                                     <tr>
-                                        <td><button class="btn btn-primary" onclick="window.open('http://127.0.0.1:8000/user_profile.html?user_id={{ user_info.id }}');">详情</button></td>
+                                        <td>
+                                            <button class="btn btn-primary"
+                                                    onclick="window.open('{{ global_url }}user_profile.html?user_id={{ user_info.id }}');">
+                                                详情
+                                            </button>
+                                        </td>
 {#                                        <td>{{ user_info.task_name }}</td>#}
                                         <td>{{ user_info.user }}</td>
                                         <td>{{ user_info.is_active }}</td>

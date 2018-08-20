@@ -39,7 +39,8 @@
                     <!-- left column -->
                     <div class="span9 with-sidebar">
                         <div class="container">
-                            <form action="http://127.0.0.1:8000/add_task.html" method="post" class="form-horizontal new_user_form inline-input">
+                            <form action="{{ global_url }}add_task.html" method="post"
+                                  class="form-horizontal new_user_form inline-input">
                                 <div class="span12 field-box">
                                     <label>任务名称:</label>
                                     <input class="span9" type="text" name="task_name">

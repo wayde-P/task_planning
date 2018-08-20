@@ -71,7 +71,12 @@
                                 <!-- row -->
                                 {% for task_info in task_list_dict %}
                                     <tr>
-                                        <td><button class="btn btn-primary" onclick="window.open('http://127.0.0.1:8000/task_history.html?task_id={{ task_info.id }}');">详情</button></td>
+                                        <td>
+                                            <button class="btn btn-primary"
+                                                    onclick="window.open('{{ global_url }}task_history.html?task_id={{ task_info.id }}');">
+                                                详情
+                                            </button>
+                                        </td>
                                         <td>{{ task_info.task_name }}</td>
                                         <td>{{ task_info.host }}</td>
                                         <td>{{ task_info.exec_user }}</td>

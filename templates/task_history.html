@@ -29,7 +29,7 @@
 {% endblock %}
 
 {% block content %}
-    <form action="http://127.0.0.1:8000/task_history.html?task_id={{ task_id }}" method="post" class="form-horizontal">
+    <form action="{{ global_url }}task_history.html?task_id={{ task_id }}" method="post" class="form-horizontal">
         <fieldset>
             <legend>Task History</legend>
 {#            <div class="row-fluid title">#}
