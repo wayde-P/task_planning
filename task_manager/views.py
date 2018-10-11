@@ -1,41 +1,22 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
+from django.http import JsonResponse
 from django.http import HttpResponse
 from task_manager import mysql_conn
 from task_manager import conf
+import paramiko
 import requests
 import json
 import time
 import re
 import hashlib
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Create your views here.
 
 global_url = conf.global_url
+global_pkey = conf.pkey_file_path
 
-def genearteMD5(str):
-    # 创建md5对象
-    hl = hashlib.md5()
-
-    # Tips
-    # 此处必须声明encode
-    # 否则报错为：hl.update(str)    Unicode-objects must be encoded before hashing
-    hl.update(str.encode(encoding='utf-8'))
-    print(hl.hexdigest())
-    return hl.hexdigest()
-
-
-# mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
-
-def log(username,request_path,reslute,comment):
-    log_sql="insert into task_plant_log (op_time,username,url_path,result,comment) values (now(),%s,%s,%s,%s)"
-    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
-    if mh.cud(log_sql,(username,request_path,int(reslute),comment)):
-        pass
-    else:
-        print("log error")
-    mh.close()
 
 def get_permission_list(username, request_path):
     # is_login = request.session.get("login", False)
@@ -59,6 +40,97 @@ def get_permission_list(username, request_path):
     # print(handle_permission_list)
 
     return handle_permission_list
+
+
+def f_ssh(key_file, host, port, command):
+    private_key = paramiko.RSAKey.from_private_key_file(key_file)
+
+    # 创建SSH对象
+    ssh = paramiko.SSHClient()
+    # 允许连接不在know_hosts文件中的主机
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # 连接服务器
+    ssh.connect(hostname=host, port=port, username='root', pkey=private_key)
+
+    # command = '''
+    # cp /var/spool/cron/{user} {user}.`date +%F-%R:%S` && \
+    # grep -n '{task_path}' /var/spool/cron/{user} | awk -F\: '{{print $1}}'
+    # '''.format(user=db_task_exec_user, task_path=db_task_script_path)
+    print(command)
+    # 执行命令
+    stdin, stdout, stderr = ssh.exec_command(command)
+    # print(stdout.readlines()[0].strip())
+    # 获取命令结果
+    ssh_result = stdout.readlines()
+
+    if len(ssh_result) > 0:
+        result = ssh_result[0].strip()
+        print("ssh reault:" + result)
+    else:
+        result = ssh_result
+
+    err_list = stderr.readlines()
+
+    if len(err_list) > 0:
+        print("ERROR:" + err_list[0])
+
+    # 关闭连接
+    ssh.close()
+
+    return result
+
+
+def get_user_info(request):
+    is_login = request.session.get("login", False)
+    username = request.session.get("username")
+    request_path = request.path
+
+
+def get_login__permission(request):
+    def get_login__permission_out(func):
+        def require(*args, **kwargs):
+            if is_login:
+                if check_permission(username, request_path):
+                    permission_list = get_permission_list(username, request_path)
+                    result = func(*args, **kwargs)
+                    return result
+                else:
+                    return render(request, "no_permission.html")
+            else:
+                return redirect("login.html")
+
+        return require
+
+    return get_login__permission_out
+
+
+@get_login__permission(get_user_info)
+def test_upload(request, permission_list):
+    return HttpResponse(permission_list)
+
+
+def genearteMD5(str):
+    # 创建md5对象
+    hl = hashlib.md5()
+
+    # Tips
+    # 此处必须声明encode
+    # 否则报错为：hl.update(str)    Unicode-objects must be encoded before hashing
+    hl.update(str.encode(encoding='utf-8'))
+    print(hl.hexdigest())
+    return hl.hexdigest()
+
+
+# mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
+
+def log(username, request_path, reslute, comment):
+    log_sql = "insert into task_plant_log (op_time,username,url_path,result,comment) values (now(),%s,%s,%s,%s)"
+    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning', 'utf8')
+    if mh.cud(log_sql, (username, request_path, int(reslute), comment)):
+        pass
+    else:
+        print("log error")
+    mh.close()
 
 
 def check_permission(username, request_path):
@@ -90,7 +162,7 @@ def login(request):
             return redirect("task_list.html")
         else:
             return render(request, "signin.html")
-        # return HttpResponse(request,"login.html")
+            # return HttpResponse(request,"login.html")
     elif request.method == "POST":
         # print(request.POST)
         # print(request.session['login'])
@@ -127,7 +199,7 @@ def login(request):
             # print("session info : ", request.session)
             request_path = request.path
             print(user_name, "login ok")
-            log(user_name,request.path,0,"login success")
+            log(user_name, request.path, 0, "login success")
             # permission_list = check_permission(username=user_name, request_path=request_path)
             # print("permission list:", permission_list)
             return redirect("task_list.html")
@@ -157,10 +229,20 @@ def task_list(request):
                                         'utf8')
             task_list_dict = mh.find(sql, 1)
             mh.close()
+            # 分页
+            paginator = Paginator(task_list_dict, 10, 5)
+            page = request.GET.get('page')
+            try:
+                customer = paginator.page(page)
+            except PageNotAnInteger:
+                customer = paginator.page(1)
+            except EmptyPage:
+                customer = paginator.page(paginator.num_pages)
+
             log(username, request.path, 0, "get task list")
             # print(task_list_dict)
             return render(request, "task_list.html",
-                          {"task_list_dict": task_list_dict, "permission_list": permission_list,
+                          {"task_list_dict": customer, "permission_list": permission_list,
                            "global_url": global_url})
         else:
             log(username, request.path, 1, "get task list fail , no permission")
@@ -259,7 +341,7 @@ def task_history(request):
                                "task_id": task_id, "permission_list": permission_list, "task_info": task_info,
                                "global_url": global_url}
                 #
-                info="task is {}, start time is : {} , endtime is : {}".format(task_info,start_time,end_time)
+                info = "task is {}, start time is : {} , endtime is : {}".format(task_info, start_time, end_time)
                 log(username, request.path, 0, info)
                 return render(request, "task_history.html", result_dict)
             else:
@@ -322,16 +404,16 @@ def manage_task_list(request):
         if check_permission(username, request_path):
             permission_list = get_permission_list(username, request_path)
             if request.method == "GET":
-                try:
-                    request.GET["del_task_id"]
+                # try:
+                if request.GET.get("del_task_id"):
                     delete_id = request.GET["del_task_id"]
                     # print("=========================================", delete_id)
                     if delete_id:
-                        get_task_command_sql="select script_path from task_list where id = %s ; "
+                        get_task_command_sql = "select script_path from task_list where id = %s ; "
                         mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
                                                     'task_planning', 'utf8')
-                        command_info=mh.find(get_task_command_sql,delete_id)[0].get("script_path")
-                        print("command_info: ",command_info)
+                        command_info = mh.find(get_task_command_sql, delete_id)[0].get("script_path")
+                        print("command_info: ", command_info)
                         mh.close()
                         del_task_sql = "delete from task_list where id = %s"
                         mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
@@ -343,7 +425,75 @@ def manage_task_list(request):
                         else:
                             mh.close()
                             return HttpResponse("delete task fail")
-                except:
+
+                elif request.GET.get("action"):
+                    action = int(request.GET.get("action"))
+                    task_id = request.GET.get("task_id")
+                    host = request.GET.get("host")
+                    exec_user = request.GET.get("exec_user")
+                    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                'task_planning', 'utf8')
+                    get_task_info_sql = "select * from task_list where id = %s"
+                    task_info = mh.find(get_task_info_sql, task_id)[0]
+                    print("task_infO:   ", task_info)
+                    db_task_id = task_info.get("id")
+                    db_task_host = task_info.get("host")
+                    db_task_exec_user = task_info.get("exec_user")
+                    db_task_script_path = task_info.get("script_path")
+
+                    mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                                'task_planning', 'utf8')
+                    command = "grep -n '{task_path}' /var/spool/cron/{user} | awk -F\: '{{print $1}}'" \
+                        .format(user=db_task_exec_user, task_path=db_task_script_path)
+
+                    # 获取行数
+                    line_num = f_ssh(global_pkey, db_task_host, 3222, command).strip()
+
+                    print("action:", type(action), db_task_id, db_task_host, db_task_exec_user)
+                    # action=1 为开启, 0 为关闭
+                    if action == 1:
+                        print("begin start open task.")
+                        # and db_task_id is not None and db_task_host is not None and db_task_exec_user is not None:
+                        action_sql = "update task_list set current_status = 1 where id = %s"
+                        print(action_sql)
+                        if line_num:
+                            command = "cd /var/spool/cron/ ; cp {user} {user}.`date +%F-%R:%S` &&" \
+                                      " sed -i '{line}s/^#*//' /var/spool/cron/{user} && " \
+                                      " grep '{task}' /var/spool/cron/{user} | grep -v '#' | wc -l".format(
+                                user=db_task_exec_user, task=db_task_script_path, line=line_num)
+                            result = f_ssh(global_pkey, db_task_host, 3222, command)
+                            if result == 1:
+                                log(username, request.path, 0, "start task: {}".format(db_task_script_path))
+                            elif result == 0:
+                                log(username, request.path, 0, "start task fail: {}".format(db_task_script_path))
+                                return HttpResponse("start fail")
+                    # 关闭任务
+                    elif action == 0:
+                        # and not db_task_id is None and not db_task_host is  None and not db_task_exec_user is None:
+                        action_sql = "update task_list set current_status = 0 where id = %s"
+                        # print(action_sql)
+                        if line_num:
+                            print("begin start close task.")
+                            command = "cd /var/spool/cron/ ;cp {user} {user}.`date +%F-%R:%S` &&" \
+                                      " sed -i '{line}s/^/#/' /var/spool/cron/{user} && " \
+                                      " grep '{task}' /var/spool/cron/{user} | grep -v '#' | wc -l".format(
+                                user=db_task_exec_user, task=db_task_script_path, line=line_num)
+                            result = f_ssh(global_pkey, db_task_host, 3222, command)
+                            print("result: ", result, type(result))
+                            if int(result) == 0:
+                                log(username, request.path, 0, "close task ok: {}".format(db_task_script_path))
+
+                            elif int(result) >= 1:
+                                log(username, request.path, 0, "close task fail: {}".format(db_task_script_path))
+                                return HttpResponse("stop fail")
+                    else:
+                        print("action error")
+
+                    if mh.cud(action_sql, task_id):
+                        return redirect("manage_task_list.html")
+                    else:
+                        return HttpResponse("DB oprate error")
+                else:
                     sql = "select * from task_list where 1 = %s"
                     mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
                                                 'task_planning', 'utf8')
@@ -352,7 +502,8 @@ def manage_task_list(request):
                     # print("manage task list:",task_list_dict)
                     log(username, request.path, 0, "get task list")
                     return render(request, "manage_task_list.html",
-                                  {"task_list_dict": task_list_dict, "permission_list": permission_list})
+                                  {"task_list_dict": task_list_dict, "permission_list": permission_list,
+                                   "global_url": global_url})
         else:
             return render(request, "no_permission.html")
     else:
@@ -448,7 +599,7 @@ def permission_manager(request):
                     info = "revoke user_id is {}, permission_id is {}".format(user_id, permission_id)
                 elif action == "add":
                     permission_sql = "insert into my_user_to_permission (user_id,permission_id) VALUE (%s,%s) ;"
-                    info="add user_id is {}, permission_id is {}".format(user_id, permission_id)
+                    info = "add user_id is {}, permission_id is {}".format(user_id, permission_id)
                 else:
                     return redirect("user_list.html")
                 mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
@@ -456,7 +607,7 @@ def permission_manager(request):
 
                 if mh.cud(permission_sql, (user_id, permission_id)):
                     redirect_url = "/user_profile.html?user_id={}".format(user_id)
-                    log(username, request.path, 0,info)
+                    log(username, request.path, 0, info)
                     # return redirect("/user_profile.html?user_id=%s",user_id)
                     # print(redirect_url)
                     mh.close()
@@ -473,8 +624,39 @@ def permission_manager(request):
         return redirect("login.html")
 
 
-def test_upload(request):
-    print(request.GET)
+def get_user(request):
+    is_login = request.session.get("login", False)
+    if is_login:
+        host = request.GET.get("host")
+        all_user_sql = "select exec_user from task_planning.task_list WHERE host = \"%s\" GROUP BY exec_user;" % (host)
+        mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                    'task_planning', 'utf8')
+        all_user_sql_result = mh.find(all_user_sql)
+        mh.close()
+        res = []
+        print(all_user_sql_result)
+        for i in all_user_sql_result:
+            res.append([i.get("exec_user")])
+        print(res)
+        return JsonResponse({"exec_user": res})
+
+
+def get_host(request):
+    is_login = request.session.get("login", False)
+    if is_login:
+        all_host_sql = "select host from task_planning.task_list GROUP BY host;"
+        mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                    'task_planning', 'utf8')
+        all_host_sql_result = mh.find(all_host_sql)
+        mh.close()
+        res = []
+        print(all_host_sql_result)
+        for i in all_host_sql_result:
+            res.append([i.get("host")])
+        print(res)
+        return JsonResponse({"host": res})
+
+
 
 
 def logout(request):

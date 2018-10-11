@@ -47,10 +47,10 @@
                                         <span class="line"></span>
                                         创建时间
                                     </th>
-                                    <th class="span3">
-                                        <span class="line"></span>
-                                        备注
-                                    </th>
+                                    {#                                    <th class="span3">#}
+                                    {#                                        <span class="line"></span>#}
+                                    {#                                        备注#}
+                                    {#                                    </th>#}
                                 </tr>
                             </thead>
                             <tbody>
@@ -59,18 +59,38 @@
                                 {% for task_info in task_list_dict %}
                                     <tr>
                                         <td>
-                                            <div class="btn-xs btn btn-warning del_btn" data-toggle="modal" data-target="#myModal"
-                                                 task_id="{{ task_info.id }}"
-{#                                                 task_name="{{ task_info.task_name }}"#}
-                                                 host="{{ task_info.host }}"
-                                                 exec_user="{{ task_info.exec_user }}"
-                                                 task_type="{{ task_info.task_type }}"
-                                                 frequency="{{ task_info.frequency }}"
-                                                 script_path="{{ task_info.script_path }}"
-                                                 task_create_time="{{ task_info.task_create_time|date:"Y-m-d H:i:s" }}"
-                                                 comment="{{ task_info.comment }}"
-                                            >
-                                                <i class="icon-remove"></i>
+
+                                            <div class="btn-group btn-group-xs" role="group" aria-label="...">
+                                                <button type="button" class="btn btn-warning del_btn"
+                                                        data-toggle="modal"
+                                                        data-target="#myModal"
+                                                        task_id="{{ task_info.id }}"
+                                                        {#                                              task_name="{{ task_info.task_name }}"#}
+                                                        host="{{ task_info.host }}"
+                                                        exec_user="{{ task_info.exec_user }}"
+                                                        task_type="{{ task_info.task_type }}"
+                                                        frequency="{{ task_info.frequency }}"
+                                                        script_path="{{ task_info.script_path }}"
+                                                        task_create_time="{{ task_info.task_create_time|date:"Y-m-d H:i:s" }}"
+                                                        comment="{{ task_info.comment }}">
+                                                    <i class="icon-remove"></i>
+                                                </button>
+
+
+                                                {% if task_info.current_status == 1 %}
+                                                    <a class="btn btn-danger"
+                                                       href="{{ global_url }}manage_task_list.html?action=0&task_id={{ task_info.id }}&host={{ task_info.host }}&exec_user={{ task_info.exec_user }}">
+                                                        停止
+                                                    </a>
+                                                {% elif task_info.current_status == 0 %}
+                                                    <a class="btn btn-info"
+                                                       href="{{ global_url }}manage_task_list.html?action=1&task_id={{ task_info.id }}&host={{ task_info.host }}&exec_user={{ task_info.exec_user }}">
+                                                        启动
+                                                    </a>
+                                                {% endif %}
+
+
+
                                             </div>
                                         </td>
 {#                                        <td>{{ task_info.task_name }}</td>#}
@@ -80,7 +100,7 @@
                                         <td>{{ task_info.frequency }}</td>
                                         <td>{{ task_info.script_path }}</td>
                                         <td>{{ task_info.task_create_time|date:"Y-m-d H:i:s" }}</td>
-                                        <td>{{ task_info.comment }}</td>
+                                        {#                                        <td>{{ task_info.comment }}</td>#}
                                     </tr>
                                 {% endfor %}
 

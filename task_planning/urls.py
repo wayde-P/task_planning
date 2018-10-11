@@ -32,5 +32,7 @@ urlpatterns = [
     url('user_list.html', views.user_list,name='user_list.html'),
     url('test_upload.html', views.test_upload,name='test_upload.html'),
     url('user_profile.html', views.user_profile,name='user_profile.html'),
+    url('get_host', views.get_host, name='get_host'),
+    url('get_user', views.get_user, name='get_user'),
     url('permission_manager.html', views.permission_manager,name='permission_manager.html'),
 ]
