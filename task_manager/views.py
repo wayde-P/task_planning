@@ -223,6 +223,16 @@ def task_list(request):
     if is_login:
         if check_permission(username, request_path):
             permission_list = get_permission_list(username, request_path)
+
+            select_host = request.GET.get("select_host")
+            select_user = request.GET.get("select_user")
+            if select_user not None and select_host not None:
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning',
+                                            'utf8')
+                task_list_dict = mh.find(sql, 1)
+                mh.close()
+
             # 获取任务列表
             sql = "select * from task_list where 1 = %s"
             mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning',
