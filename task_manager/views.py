@@ -86,27 +86,27 @@ def get_user_info(request):
     request_path = request.path
 
 
-def get_login__permission(request):
-    def get_login__permission_out(func):
-        def require(*args, **kwargs):
-            if is_login:
-                if check_permission(username, request_path):
-                    permission_list = get_permission_list(username, request_path)
-                    result = func(*args, **kwargs)
-                    return result
-                else:
-                    return render(request, "no_permission.html")
-            else:
-                return redirect("login.html")
-
-        return require
-
-    return get_login__permission_out
-
-
-@get_login__permission(get_user_info)
-def test_upload(request, permission_list):
-    return HttpResponse(permission_list)
+# def get_login__permission(request):
+#     def get_login__permission_out(func):
+#         def require(*args, **kwargs):
+#             if is_login:
+#                 if check_permission(username, request_path):
+#                     permission_list = get_permission_list(username, request_path)
+#                     result = func(*args, **kwargs)
+#                     return result
+#                 else:
+#                     return render(request, "no_permission.html")
+#             else:
+#                 return redirect("login.html")
+#
+#         return require
+#
+#     return get_login__permission_out
+#
+#
+# @get_login__permission(get_user_info)
+# def test_upload(request, permission_list):
+#     return HttpResponse(permission_list)
 
 
 def genearteMD5(str):
@@ -223,16 +223,6 @@ def task_list(request):
     if is_login:
         if check_permission(username, request_path):
             permission_list = get_permission_list(username, request_path)
-
-            select_host = request.GET.get("select_host")
-            select_user = request.GET.get("select_user")
-            if select_user not None and select_host not None:
-                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
-                                            'task_planning',
-                                            'utf8')
-                task_list_dict = mh.find(sql, 1)
-                mh.close()
-
             # 获取任务列表
             sql = "select * from task_list where 1 = %s"
             mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#', 'task_planning',
@@ -260,6 +250,88 @@ def task_list(request):
     else:
         log(username, request.path, 1, "get task list fail , no login")
         return redirect("login.html")
+
+
+# 模糊搜索
+def task_blurred_search(request):
+    print("this is task_blurred_search list================")
+    is_login = request.session.get("login", False)
+    username = request.session.get("username")
+    request_path = request.path
+    print("username: ", username)
+    if is_login:
+        if check_permission(username, request_path):
+            permission_list = get_permission_list(username, request_path)
+            blurred_char = request.GET.get("blurred")
+            if blurred_char is not None:
+                # 根据关键字筛选
+                find_sql = "select * from task_list where script_path like %s"
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
+                format_blurred = "%" + blurred_char + "%"
+                blurred_task_list = mh.find(find_sql, format_blurred)
+                # print(select_task_list)
+                mh.close()
+                # 分页
+                paginator = Paginator(blurred_task_list, 10, 5)
+                page = request.GET.get('page')
+                try:
+                    customer = paginator.page(page)
+                except PageNotAnInteger:
+                    customer = paginator.page(1)
+                except EmptyPage:
+                    customer = paginator.page(paginator.num_pages)
+                return render(request, "task_blurred_list.html",
+                              {"task_list_dict": customer, "permission_list": permission_list,
+                               "blurred_char": blurred_char, "global_url": global_url})
+            else:
+                log(username, request.path, 1, "get task list fail , no permission")
+                return render(request, "no_permission.html")
+        else:
+            log(username, request.path, 1, "get task list fail , no login")
+            return redirect("login.html")
+
+
+def task_list_search(request):
+    print("this is task list================")
+    is_login = request.session.get("login", False)
+    username = request.session.get("username")
+    request_path = request.path
+    print("username: ", username)
+    if is_login:
+        if check_permission(username, request_path):
+            permission_list = get_permission_list(username, request_path)
+
+            select_host = request.GET.get("select_host")
+            select_user = request.GET.get("select_user")
+            # all 函数判断所有参数是否为空同  if and
+            if all([select_host, select_user]):
+                # 根据主机和用户筛选
+                tag = "host_user"
+                sql = "select * from task_list where host= %s and exec_user = %s;"
+                mh = mysql_conn.MysqlHelper('192.168.23.176', 3306, 'task_planning', 'task_planning!@#',
+                                            'task_planning', 'utf8')
+                select_task_list = mh.find(sql, (select_host, select_user))
+                # print(select_task_list)
+                mh.close()
+                # 分页
+                paginator = Paginator(select_task_list, 10, 5)
+                page = request.GET.get('page')
+                try:
+                    customer = paginator.page(page)
+                except PageNotAnInteger:
+                    customer = paginator.page(1)
+                except EmptyPage:
+                    customer = paginator.page(paginator.num_pages)
+                return render(request, "task_search_list.html",
+                              {"task_list_dict": customer, "permission_list": permission_list,
+                               "host": select_host, "user": select_user, "global_url": global_url})
+            else:
+                log(username, request.path, 1, "get task list fail , no permission")
+                return render(request, "no_permission.html")
+        else:
+            log(username, request.path, 1, "get task list fail , no login")
+            return redirect("login.html")
 
 
 def report_data(request):
@@ -665,8 +737,6 @@ def get_host(request):
             res.append([i.get("host")])
         print(res)
         return JsonResponse({"host": res})
-
-
 
 
 def logout(request):

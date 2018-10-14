@@ -21,11 +21,12 @@
         <div class="row-fluid header">
             <div class="table-wrapper orders-table">
                 <div class="row-fluid header">
-                    <div class="span12">
-                        <h3>搜索任务列表</h3>
-                    </div>
+                    <div class="row-fluid"><h3>搜索任务列表</h3></div>
                 </div>
                 <div class="row-fluid">
+                    <div class="row-fluid">
+                        <div class="alert alert-success" role="alert">以下是{{ host }}， 用户: {{ user }}的所有任务。</div>
+                    </div>
                     <table class="table table-hover">
                         <thead>
                         <tr>
@@ -103,9 +104,13 @@
                             {#                        {% endfor %}#}
                             {% for pg in task_list_dict.paginator.page_range %}
                                 {% if task_list_dict.number == pg %}
-                                    <li class="active"><a href="?page={{ pg }}">{{ pg }}</a></li>
+                                    <li class="active"><a
+                                            href="?page={{ pg }}&select_host={{ host }}&select_user={{ user }}">{{ pg }}</a>
+                                    </li>
                                 {% else %}
-                                    <li><a href="?page={{ pg }}">{{ pg }}</a></li>
+                                    <li>
+                                        <a href="?page={{ pg }}&select_host={{ host }}&select_user={{ user }}">{{ pg }}</a>
+                                    </li>
                                 {% endif %}
                             {% endfor %}
 
